@@ -31,8 +31,10 @@ with col2:
     # Chatbot section
     def stream_data(text):
         delay = 0.1  # Imposta un ritardo per il flusso dei dati
+        output = ""  # Mantiene il testo completo che stiamo costruendo
         for word in text.split():
-            yield word + " "
+            output += word + " "
+            st.write(output)  # Aggiorna dinamicamente il contenuto della chat
             time.sleep(delay)
 
     # Input per il prompt (istruzione)
@@ -45,12 +47,16 @@ with col2:
 
         # Elaborazione del prompt
         with st.spinner("Thinking ..."):
-            result = ollama.chat(model="francescomassa/emiscanmk2", messages=[{
-                "role": "user",
-                "input": "",  # Nessun input aggiuntivo
-                "content": instruction,
-            }])
+            try:
+                result = ollama.chat(model="francescomassa/emiscanmk2", messages=[{
+                    "role": "user",
+                    "content": instruction,
+                }])
+                response = result["message"]["content"]  # Assumendo che il campo esista
+            except Exception as e:
+                st.error(f"Error: {e}")
+                response = None
 
-        # Estrae la risposta e la mostra
-        response = result["message"]["content"]  # 'content' è il campo che contiene la risposta
-        st.write_stream(stream_data(response))  # Mostra la risposta del chatbot
+        # Mostra la risposta del chatbot, se esiste
+        if response:
+            stream_data(response)
